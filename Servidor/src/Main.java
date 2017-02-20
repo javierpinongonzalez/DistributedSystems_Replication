@@ -8,7 +8,6 @@ public class Main {
 		Layer1Node [] layer1List = new Layer1Node[2];
 		Layer2Node [] layer2List = new Layer2Node[2];
 
-		//System.out.println("Hello World");
 		
 		for (int i=1 ; i<=3 ; i++){
 			lamportList[i-1] = new CoreNode(i, new LamportClock());
@@ -29,7 +28,6 @@ public class Main {
 			try {
 				Thread.sleep(250);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			lamportList[i].start();
@@ -39,7 +37,6 @@ public class Main {
 			try {
 				Thread.sleep(250);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			layer1List[i].start();
@@ -49,7 +46,6 @@ public class Main {
 			try {
 				Thread.sleep(250);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			layer2List[i].start();

@@ -12,7 +12,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
-
+/*
+ *
+ * Classe que implementa els nodes de la capa 1
+ *
+ */
 public class Layer1Node extends Thread{
 	public int id;
 	
@@ -24,20 +28,20 @@ public class Layer1Node extends Thread{
 	public Queue shared = new LinkedList<>();
 	Semaphore getMessageSemaphore = new Semaphore(0);
 	
-	public Socket sock; //forward/listen socket
+	public Socket sock; 
 	public PrintWriter stdOut;
 	public BufferedReader stdIn;
 	
-	public Socket sockLayer2_1; //forward/listen socket
+	public Socket sockLayer2_1;
 	public PrintWriter stdOutLayer2_1;
 	public BufferedReader stdInLayer2_1;
 	
-	public Socket sockLayer2_2; //forward/listen socket
+	public Socket sockLayer2_2; 
 	public PrintWriter stdOutLayer2_2;
 	public BufferedReader stdInLayer2_2;
 	
 	
-	public Socket sockClient; //Client socket
+	public Socket sockClient; 
 	public PrintWriter stdOutClient;
 	public BufferedReader stdInClient;
 	
@@ -47,10 +51,12 @@ public class Layer1Node extends Thread{
 	
 	public int updates =0 ;
 
-	
 
-
-	
+	/*
+	 *
+	 * Constructor
+	 *
+	 */
 	public Layer1Node(int id) { 
 		this.id = id;
 		updatesList = new LinkedList<>();
@@ -58,7 +64,11 @@ public class Layer1Node extends Thread{
 
 	}
 	
-	
+	/*
+	 *
+	 * Sobreescriu el metode Run de la classe Thread
+	 *
+	 */
 	public void run(){
 		initValues();
 		
@@ -67,19 +77,19 @@ public class Layer1Node extends Thread{
 		initStdInListeners();
 		
 		doIterations();
-		
-		//closeConfig();
-		//System.out.println("Bye from thread num: "+id);
 	}
 	
-	
+	/*
+	 *
+	 * Inicialitza els valors de la capa core
+	 *
+	 */
 	private void initValues(){
 		String line;
 		int i = 0;
 		try {
 			FileReader fileReader = new FileReader("Layer1Values"+id+".log");
 			
-			// Always wrap FileReader in BufferedReader.
             BufferedReader bufferedReader = 
                 new BufferedReader(fileReader);
 
@@ -88,18 +98,20 @@ public class Layer1Node extends Thread{
             	i++;
             }
             
-         // Always close files.
             bufferedReader.close(); 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}catch(IOException e) {
-            System.out.println("Error reading file 'executableCommands'");                  
-            // Or we could just do this: 
-            // ex.printStackTrace();
+            e.printStackTrace();             
         }
 	}
 	
+
+	/*
+	 *
+	 * Inicialitza la configuració dels sockets
+	 *
+	 */
 	private void initConfig(){
 		if (debug) System.out.println("[DEBUG] Layer1Node " + id + " starting initConfig()");
 		
@@ -114,15 +126,13 @@ public class Layer1Node extends Thread{
 				stdOut = new PrintWriter(sock.getOutputStream(), true);
 				stdIn = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 				
-				serverSock.close(); //????
+				serverSock.close();
 				
 				configSockClient();
 				
 			}catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
@@ -137,7 +147,7 @@ public class Layer1Node extends Thread{
 				stdOut = new PrintWriter(sock.getOutputStream(), true);
 				stdIn = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 				
-				serverSock.close(); //????
+				serverSock.close();
 				
 				configSockLayer2();
 				
@@ -145,10 +155,8 @@ public class Layer1Node extends Thread{
 
 				
 			}catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
@@ -159,6 +167,11 @@ public class Layer1Node extends Thread{
 		}
 	}	
 	
+	/*
+	 *
+	 * Configura el socket amb un node de la capa 2
+	 *
+	 */	
 	public void configSockLayer2(){
 		try {
 			if (debug) System.out.println("[DEBUG] Layer1 " + id + " connecting to Layer2Node...");
@@ -170,16 +183,18 @@ public class Layer1Node extends Thread{
 			stdOutLayer2_2 = new PrintWriter(sockLayer2_2.getOutputStream(), true);
 			stdInLayer2_2 = new BufferedReader(new InputStreamReader(sockLayer2_2.getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Configura el socket amb el client
+	 *
+	 */	
 	private void configSockClient(){
-		//Listen
 		int idClient = 3+id;
 		try{
 			ServerSocket serverSock = new ServerSocket(9600+idClient);
@@ -190,22 +205,24 @@ public class Layer1Node extends Thread{
 			stdOutClient = new PrintWriter(sockClient.getOutputStream(), true);
 			stdInClient = new BufferedReader(new InputStreamReader(sockClient.getInputStream()));
 			
-			serverSock.close(); //????
-			
+			serverSock.close(); 
+
 		}catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza els sockets listeners per evitar congelar el thread principal
+	 *
+	 */
 	private void initStdInListeners(){
 		try {
 			sleep(2000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -214,10 +231,6 @@ public class Layer1Node extends Thread{
 		
 		StdListener stdListener1 = new StdListener(stdIn, shared, getMessageSemaphore, id, 1);
 		stdListener1.start();
-		/*if (id != 1){
-			StdListener stdListenerLayer1 = new StdListener(stdInLayer1, shared, getMessageSemaphore, id, 3);
-			stdListenerLayer1.start();
-		}*/
 		StdListener stdListenerClient = new StdListener(stdInClient, shared, getMessageSemaphore, id, 4);
 		stdListenerClient.start();
 		
@@ -230,22 +243,25 @@ public class Layer1Node extends Thread{
 		}
 	}
 	
+	/*
+	 *
+	 * Bucle infinit, obté missatge i processa missatge
+	 *
+	 */
 	private void doIterations(){
 		String message;
 		
-		//stdOut1.println("RELEASE");
-		//stdOut2.println("RELEASE");
 		while (true){	
-			//getMessage
 			message = getMessage();
-			//processMessage
-			processMessage(message);
-				
+			processMessage(message);			
 		}
-		
-		
 	}
 	
+	/*
+	 *
+	 * Obté missatge del socket
+	 *
+	 */
 	private String getMessage(){
 		String recievedMessage = "initialValue";
 			
@@ -254,7 +270,6 @@ public class Layer1Node extends Thread{
 		try {
 			getMessageSemaphore.acquire();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -267,7 +282,11 @@ public class Layer1Node extends Thread{
 		return recievedMessage;
 	}
 	
-	
+	/*
+	 *
+	 * Processa el missatge rebut pel socket
+	 *
+	 */
 	private void processMessage (String message){
 		String [] parts;
 		String response;
@@ -275,16 +294,13 @@ public class Layer1Node extends Thread{
 		
 	
 		if (message.substring(0, 1).equals("b")){
-			//Read or Write
 			parts = message.split(",");
 			
 			if (parts[0].equals("b")){
-				//write frame
 				i++;
 				while (!parts[i].equals("c"))
 				{
 					if (parts[i].substring(0, 1).equals("w")){
-						//write
 						String[] partsWrite;
 						
 						partsWrite = parts[i].split(":");
@@ -305,22 +321,18 @@ public class Layer1Node extends Thread{
 					writeFile();
 					fileMutex.release();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}else{
-				//read frame
 				parts = message.split(",");
 				i++;
 				response = "";
 				
 				while (!parts[i].equals("c"))
 				{
-					//read
 					
 					parts[i] = parts[i].replaceAll("r", "");
 					parts[i] = parts[i].replaceAll("[()]", "");
-					//parts[i] = parts[i].replaceAll("//)", "");
 			
 					if(response.equals("")){
 						response += Integer.parseInt(parts[i])+":"+values[Integer.parseInt(parts[i])];
@@ -338,6 +350,11 @@ public class Layer1Node extends Thread{
 		}
 	}	
 	
+	/*
+	 *
+	 * Envia una actualització de les dades 
+	 *
+	 */
 	public void sendUpdate(String layer2Node){
 		if (updates == 1){
 			String frameString = "b,";
@@ -369,7 +386,13 @@ public class Layer1Node extends Thread{
 			updates ++;
 		}
 	}
+
 	
+	/*
+	 *
+	 * Escriu al fitxer per fer persistir les dades
+	 *
+	 */
 	public void writeFile(){	
 		if (debug) System.out.println("[DEBUG] Layer1Node "+id+" writing file...");
 
@@ -382,10 +405,8 @@ public class Layer1Node extends Thread{
 			}
 			writer.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

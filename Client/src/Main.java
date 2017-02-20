@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class Main {
 	
-	static Socket [] sock = new Socket[7]; //Client socket
+	static Socket [] sock = new Socket[7];
 	static PrintWriter [] stdOut = new PrintWriter[7];
 	static BufferedReader [] stdIn = new BufferedReader[7];
 	
@@ -27,7 +27,6 @@ public class Main {
 			try {
 				System.in.read();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			readFile();
@@ -36,23 +35,30 @@ public class Main {
 		}
 	}
 	
+    /*
+     *
+     * Configura els sockets
+     *
+     */
 	private static void configSock(int id){
-		//Connect
 		try {
-			//if (debug) System.out.println("[DEBUG] Process " + id + " connecting...");
 			
 			sock[id-1] = new Socket("127.0.0.1", 9600 + id);
 			stdOut[id-1] = new PrintWriter(sock[id-1].getOutputStream(), true);
 			stdIn[id-1] = new BufferedReader(new InputStreamReader(sock[id-1].getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+
+    /*
+     *
+     * Llegeix el fitxer de configuració y processa les accions
+     *
+     */
 	private static void readFile(){
 		String line;
 		String response;
@@ -62,20 +68,17 @@ public class Main {
 		try {
 			FileReader fileReader = new FileReader("executableCommands");
 			
-			// Always wrap FileReader in BufferedReader.
             BufferedReader bufferedReader = 
                 new BufferedReader(fileReader);
 
             while((line = bufferedReader.readLine()) != null) {
-                //System.out.println(line);
-            	//Tractar linia
+
             	line = line.replaceAll(" ", "");
     			System.out.println(line);
 
         		parts = line.split(",");
         		
         		if (parts[0].equals("b")){
-        			//write
         			Random rand = new Random(); 
         			int randValue = rand.nextInt(3);
         			
@@ -86,7 +89,6 @@ public class Main {
         			System.out.println("Response from server: "+response);
         			
         		} else if (parts[0].equals("b<0>")){
-        			//read Core layer
         			Random rand = new Random(); 
         			int randValue = rand.nextInt(3);
         			
@@ -98,7 +100,6 @@ public class Main {
         			System.out.println("Response from server: "+response);
         			
         		} else if (parts[0].equals("b<1>")){
-        			//read Layer 1
         			Random rand = new Random(); 
         			int randValue = rand.nextInt(2) + 3;
         			
@@ -109,7 +110,6 @@ public class Main {
         			System.out.println("Response from server: "+response);
         			
         		} else if (parts[0].equals("b<2>")){
-        			//read Layer 2
         			Random rand = new Random(); 
         			int randValue = rand.nextInt(2) + 5;
         			
@@ -123,21 +123,17 @@ public class Main {
         		try {
         			System.in.read();
     			} catch (IOException e) {
-    				// TODO Auto-generated catch block
     				e.printStackTrace();
     			}
 
             }   
 
-            // Always close files.
             bufferedReader.close(); 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}catch(IOException e) {
-            System.out.println("Error reading file 'executableCommands'");                  
-            // Or we could just do this: 
-            // ex.printStackTrace();
+            e.printStackTrace();                  
+
         }
 	}
 	

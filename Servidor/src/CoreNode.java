@@ -19,6 +19,11 @@ import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
 
+/*
+ *
+ * Classe que implementa els nodes core
+ *
+ */
 public class CoreNode extends Thread{
 	public int id;
 	public LamportClock ts;
@@ -31,22 +36,20 @@ public class CoreNode extends Thread{
 	public Queue shared = new LinkedList<>();
 	Semaphore getMessageSemaphore = new Semaphore(0);
 	
-	//Core communication
-	public Socket sock1; //forward/listen socket
-	public Socket sock2; //backward/talk socket
+
+	public Socket sock1; 
+	public Socket sock2; 
 	public PrintWriter stdOut1;
 	public PrintWriter stdOut2;
 	public BufferedReader stdIn1;
 	public BufferedReader stdIn2;
 	
-	//Layer1 communication
-	public Socket sockLayer1; //forward/listen socket
+	public Socket sockLayer1; 
 	public PrintWriter stdOutLayer1;
 	public BufferedReader stdInLayer1;
 
 	
-	//Client communication
-	public Socket sockClient; //Client socket
+	public Socket sockClient; 
 	public PrintWriter stdOutClient;
 	public BufferedReader stdInClient;
 	
@@ -56,7 +59,11 @@ public class CoreNode extends Thread{
 	public LinkedList<String> updatesList;
 
 
-	
+	/*
+	 *
+	 * Constructor
+	 *
+	 */
 	public CoreNode (int id, LamportClock ts){
 		this.id = id;
 		this.ts = ts;
@@ -65,6 +72,12 @@ public class CoreNode extends Thread{
 		this.updatesList = new LinkedList<>();
 	}
 	
+
+	/*
+	 *
+	 * Sobreescriu el metode Run de la classe Thread
+	 *
+	 */
 	public void run(){
 		initValues();
 		
@@ -73,11 +86,13 @@ public class CoreNode extends Thread{
 		initStdInListeners();
 		
 		doIterations();
-		
-		//closeConfig();
-		//System.out.println("Bye from thread num: "+id);
 	}
 	
+	/*
+	 *
+	 * Inicialitza els valors de la capa core
+	 *
+	 */
 	private void initValues(){
 		String line;
 		int i = 0;
@@ -85,7 +100,6 @@ public class CoreNode extends Thread{
 		try {
 			FileReader fileReader = new FileReader("CoreValues"+id+".log");
 			
-			// Always wrap FileReader in BufferedReader.
             BufferedReader bufferedReader = 
                 new BufferedReader(fileReader);
 
@@ -94,25 +108,24 @@ public class CoreNode extends Thread{
             	i++;
             }
             
-         // Always close files.
             bufferedReader.close(); 
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}catch(IOException e) {
             System.out.println("Error reading file 'executableCommands'");                  
-            // Or we could just do this: 
-            // ex.printStackTrace();
         }
 	}
 
-	
+	/*
+	 *
+	 * Inicialitza la configuració dels sockets
+	 *
+	 */
 	private void initConfig(){
 		if (debug) System.out.println("[DEBUG] CoreNode " + id + " starting initConfig()");
 		try {
 			sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -122,7 +135,6 @@ public class CoreNode extends Thread{
 			try {
 				sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			configSock2();
@@ -147,10 +159,14 @@ public class CoreNode extends Thread{
 			System.out.println("[ERROR] Unknown id process " + id);
 			break;
 		}
-	}	
-	private void configSock1(){
-		//Listen
-		
+	}
+
+	/*
+	 *
+	 * Configura el socket amb un altre node de la capa core
+	 *
+	 */	
+	private void configSock1(){	
 		try{
 			ServerSocket serverSock = new ServerSocket(6900+id);
 			if (debug) System.out.println("[DEBUG] CoreNode " + id + " listening...");
@@ -160,18 +176,20 @@ public class CoreNode extends Thread{
 			stdOut1 = new PrintWriter(sock1.getOutputStream(), true);
 			stdIn1 = new BufferedReader(new InputStreamReader(sock1.getInputStream()));
 			
-			serverSock.close(); //????
-			
+			serverSock.close();
 		}catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
+	/*
+	 *
+	 * Configura el socket amb un altre node de la capa core
+	 *
+	 */	
 	private void configSock2(){
-		//Connect
 		try {
 			if (debug) System.out.println("[DEBUG] CoreNode " + id + " connecting...");
 			
@@ -185,16 +203,18 @@ public class CoreNode extends Thread{
 			stdOut2 = new PrintWriter(sock2.getOutputStream(), true);
 			stdIn2 = new BufferedReader(new InputStreamReader(sock2.getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Configura el socket amb un node de la capa 1
+	 *
+	 */	
 	private void configSockLayer1(){
-		//Connect
 		try {
 			if (debug) System.out.println("[DEBUG] CoreNode " + id + " connecting to Layer1...");
 			
@@ -208,16 +228,18 @@ public class CoreNode extends Thread{
 			stdOutLayer1 = new PrintWriter(sockLayer1.getOutputStream(), true);
 			stdInLayer1 = new BufferedReader(new InputStreamReader(sockLayer1.getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Configura el socket amb el client
+	 *
+	 */	
 	private void configSockClient(){
-		//Listen
 		
 		try{
 			ServerSocket serverSock = new ServerSocket(9600+id);
@@ -228,23 +250,24 @@ public class CoreNode extends Thread{
 			stdOutClient = new PrintWriter(sockClient.getOutputStream(), true);
 			stdInClient = new BufferedReader(new InputStreamReader(sockClient.getInputStream()));
 			
-			serverSock.close(); //????
+			serverSock.close();
 			
 		}catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	
+	/*
+	 *
+	 * Inicialitza els sockets listeners per evitar congelar el thread principal
+	 *
+	 */
 	private void initStdInListeners(){
 		try {
 			sleep(2000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -255,30 +278,31 @@ public class CoreNode extends Thread{
 		stdListener1.start();
 		StdListener stdListener2 = new StdListener(stdIn2, shared, getMessageSemaphore, id, 2);
 		stdListener2.start();
-		/*if (id != 1){
-			StdListener stdListenerLayer1 = new StdListener(stdInLayer1, shared, getMessageSemaphore, id, 3);
-			stdListenerLayer1.start();
-		}*/
 		StdListener stdListenerClient = new StdListener(stdInClient, shared, getMessageSemaphore, id, 4);
 		stdListenerClient.start();
 	}
 	
+
+	/*
+	 *
+	 * Bucle infinit, obté missatge i processa missatge
+	 *
+	 */
 	private void doIterations(){
 		String message;
-		
-		//stdOut1.println("RELEASE");
-		//stdOut2.println("RELEASE");
+
 		while (true){	
-			//getMessage
 			message = getMessage();
-			//processMessage
 			processMessage(message);
 				
 		}
-		
-		
 	}
 	
+	/*
+	 *
+	 * Obté missatge del socket
+	 *
+	 */
 	private String getMessage(){
 		String recievedMessage = "initialValue";
 			
@@ -287,7 +311,6 @@ public class CoreNode extends Thread{
 		try {
 			getMessageSemaphore.acquire();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -300,6 +323,12 @@ public class CoreNode extends Thread{
 		return recievedMessage;
 	}
 	
+
+	/*
+	 *
+	 * Processa el missatge rebut pel socket
+	 *
+	 */
 	private void processMessage (String message){
 		String[] parts;
 		int i = 0;
@@ -307,9 +336,7 @@ public class CoreNode extends Thread{
 		String update="u,";
 		
 		if (message.substring(0, 1).equals("u")){
-			//Update
 			parts = message.split(",");
-			
 			
 			i++;
 			while (!parts[i].equals("c"))
@@ -340,22 +367,18 @@ public class CoreNode extends Thread{
 				writeFile();
 				fileMutex.release();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 			
 		}else if (message.substring(0, 1).equals("b")){
-			//Read or Write
 			parts = message.split(",");
 			
 			if (parts[0].equals("b")){
-				//write frame
 				i++;
 				while (!parts[i].equals("c"))
 				{
 					if (parts[i].substring(0, 1).equals("w")){
-						//write
 						String[] partsWrite;
 						
 						partsWrite = parts[i].split(":");
@@ -371,17 +394,14 @@ public class CoreNode extends Thread{
 						totalUpdates ++;
 						updatesList.add(Integer.parseInt(partsWrite[0])+":"+Integer.parseInt(partsWrite[1]));
 						
-						//send update
 						if(totalUpdates >= 10){
 							sendUpdate();
 							totalUpdates = 0;
 						}
 						
 					}else{
-						//read
 						parts[i] = parts[i].replaceAll("r", "");
 						parts[i] = parts[i].replaceAll("[()]", "");
-						//parts[i] = parts[i].replaceAll("//)", "");
 				
 						if(response.equals("")){
 							response += Integer.parseInt(parts[i])+":"+values[Integer.parseInt(parts[i])];
@@ -394,16 +414,12 @@ public class CoreNode extends Thread{
 					
 				update += "c";
 				
-				//SEND REQUEST
 				requestBroadcast();
 				
-				//WAIT REPLY
 				waitReplies();
 				
-				//SEND UPDATE
 				updateBroadcast(update);
 				
-				//SEND RELEASE
 				releaseBroadcast();
 				
 				try {
@@ -411,7 +427,6 @@ public class CoreNode extends Thread{
 					writeFile();
 					fileMutex.release();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -420,17 +435,14 @@ public class CoreNode extends Thread{
 				stdOutClient.println(response);
 				
 			}else{
-				//read frame
 				
 				i++;
 				
 				while (!parts[i].equals("c"))
 				{
-					//read
 					
 					parts[i] = parts[i].replaceAll("r", "");
 					parts[i] = parts[i].replaceAll("[()]", "");
-					//parts[i] = parts[i].replaceAll("//)", "");
 			
 					if(response.equals("")){
 						response += Integer.parseInt(parts[i])+":"+values[Integer.parseInt(parts[i])];
@@ -445,17 +457,26 @@ public class CoreNode extends Thread{
 			}
 			
 		}else{
-			//Lamport message
 			processLamportMessage(message);
 		}
 	}
 	
+	/*
+	 *
+	 * Allibera la zona crítica
+	 *
+	 */
 	public void releaseBroadcast(){
 		ts.sendAction();
 		stdOut1.println("RELEASE-"+ts.ticks+"-"+this.id);
 		stdOut2.println("RELEASE-"+ts.ticks+"-"+this.id);
 	}
 	
+	/*
+	 *
+	 * Actualitza la zona crítica
+	 *
+	 */
 	public void updateBroadcast(String update){
 		q.remove(0);
 		replyCounter = 0;
@@ -467,6 +488,11 @@ public class CoreNode extends Thread{
 
 	}
 	
+	/*
+	 *
+	 * Fa una petició de la zona crítica
+	 *
+	 */
 	public void requestBroadcast(){
 		ts.sendAction();
 		stdOut1.println("REQUEST-"+ts.ticks+"-"+id);
@@ -474,6 +500,11 @@ public class CoreNode extends Thread{
 		q.add(new LamportQueueNode(ts.ticks, id));
 	}
 	
+	/*
+	 *
+	 * Espera un missatge Lamport
+	 *
+	 */
 	public void waitReplies(){
 		String msg1= "initValue";
 		String msg2 = "initValue"; 
@@ -495,6 +526,11 @@ public class CoreNode extends Thread{
 		if (partsMsg2[0].equals("REPLY")) replyCounter++;
 	}
 	
+	/*
+	 *
+	 * Processa el missatge Lamport
+	 *
+	 */
 	private void processLamportMessage(String message){
 		String[] parts;
 		
@@ -503,27 +539,27 @@ public class CoreNode extends Thread{
 		ts.receiveAction(Integer.parseInt(parts[1]));
 		
 		if (parts[0].equals("REQUEST")){
-			//DO REQUEST
 			q.add(new LamportQueueNode(Integer.parseInt(parts[1]), Integer.parseInt(parts[2])));			
 			Collections.sort(q);
-			
-			//send REPLY
 			sendReply(Integer.parseInt(parts[2]));
 		}else if (parts[0].equals("RELEASE")){
-			//DO RELEASE
 			q.remove(0);
 		}
-		//if (debug) System.out.println("[DEBUG] Process " + id + " Parts[0] "+parts[0]);
 	}
+
+	/*
+	 *
+	 * Envia una resposta Lamport
+	 *
+	 */
 	private void sendReply(int id){
-		//ts.sendAction();
 		switch (this.id){
 			case 1:
 				if (id == 2){
 					stdOut1.println("REPLY-"+ts.ticks+"-"+this.id);
 					if (debug) System.out.println("[DEBUG] CoreNode " + 1 + " sending REPLY to " +2);
 
-				}else{ //id == 3
+				}else{ 
 					stdOut2.println("REPLY-"+ts.ticks+"-"+this.id);
 					if (debug) System.out.println("[DEBUG] CoreNode " + 1 + " sending REPLY to " +3);
 
@@ -534,7 +570,7 @@ public class CoreNode extends Thread{
 					stdOut2.println("REPLY-"+ts.ticks+"-"+this.id);
 					if (debug) System.out.println("[DEBUG] CoreNode " + 2 + " sending REPLY to " +1);
 
-				}else{ //id == 3
+				}else{
 					stdOut1.println("REPLY-"+ts.ticks+"-"+this.id);
 					if (debug) System.out.println("[DEBUG] CoreNode " + 2 + " sending REPLY to " +3);
 
@@ -545,7 +581,7 @@ public class CoreNode extends Thread{
 					stdOut1.println("REPLY-"+ts.ticks+"-"+this.id);
 					if (debug) System.out.println("[DEBUG] CoreNode " + 3+ " sending REPLY to " +1);
 
-				}else{ //id == 2
+				}else{ 
 					stdOut2.println("REPLY-"+ts.ticks+"-"+this.id);
 					if (debug) System.out.println("[DEBUG] CoreNode " + 3 + " sending REPLY to " +2);
 
@@ -554,6 +590,11 @@ public class CoreNode extends Thread{
 		}
 	}
 	
+	/*
+	 *
+	 * Escriu al fitxer per fer persistir les dades
+	 *
+	 */
 	public void writeFile(){	
 		if (debug) System.out.println("[DEBUG] CoreNode "+id+" writing file...");
 
@@ -566,15 +607,17 @@ public class CoreNode extends Thread{
 			}
 			writer.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	
+	/*
+	 *
+	 * Envia una actualització de les dades 
+	 *
+	 */
 	public void sendUpdate(){
 		if(id != 1){
 			String frameString = "b,";
